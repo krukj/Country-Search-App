@@ -11,7 +11,7 @@ import java.util.List;
 
 public class JsonFileReader {
     public static void main(String[] args) throws IOException {
-        List<Country> countries = createCountriesList("response.json");
+        List<Country> countries = createCountriesList("Country-Search-App/response.json");
     }
 
     public static List<Country> createCountriesList(String filePath) throws IOException {
