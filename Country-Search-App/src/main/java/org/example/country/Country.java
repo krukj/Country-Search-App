@@ -1,6 +1,7 @@
 package org.example.country;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class Country {
@@ -32,7 +33,7 @@ public class Country {
     private String fifa;  // fifa code
     private Car car;
     private String[] timezones;  // we can convert this later to java time zone classes
-    private String[] continents;  // list of continents the country is on
+    private List<String> continents;  // list of continents the country is on
     private Map<String, String> flags;  // key - svg, png, alt
     private CoatOfArms coatOfArms;  // links to svg and png images
     private String startOfWeek;
@@ -419,7 +420,7 @@ public class Country {
         return timezones;
     }
 
-    public String[] getContinents() {
+    public List<String> getContinents() {
         return continents;
     }
 
@@ -474,7 +475,7 @@ public class Country {
                 ", fifa='" + fifa + '\'' +
                 ", car=" + car +
                 ", timezones=" + Arrays.toString(timezones) +
-                ", continents=" + Arrays.toString(continents) +
+                ", continents=" + continents +
                 ", flags=" + flags +
                 ", coatOfArms=" + coatOfArms +
                 ", startOfWeek='" + startOfWeek + '\'' +
