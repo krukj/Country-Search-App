@@ -3,15 +3,10 @@ package org.example.gui;
 import org.example.country.Country;
 import org.example.json.JsonFileReader;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,8 +14,6 @@ import java.util.stream.Stream;
 
 public class GUI {
     public JFrame frame;
-    public JPanel mainPanel;  // search panel
-    public JPanel result; // flags
     private final List<Country> countries;
     private List<Country> filteredCountries;
     private int sliderValue;
@@ -38,42 +31,38 @@ public class GUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1400, 1400);
         frame.setLayout(new FlowLayout());
-        frame.setLocationRelativeTo(null); // Wyśrodkowanie ramki na ekranie
 
-
-        mainPanel = new JPanel(new FlowLayout(20, 20, 50));
-        result = new JPanel(new GridLayout(10, 5));
-
+        frame.setLayout(null);
 
         JLabel label = new JLabel("Find your next travel destination!");
-        mainPanel.add(label);
+        label.setBounds(10, 10, 220, 100);
+        frame.add(label);
 
-
-        //distance panel
+        // distance panel
         JPanel sliderPanel = createSliderPanel();
-        mainPanel.add(sliderPanel);
+        sliderPanel.setBounds(220, 230, 250, 100);
+        frame.add(sliderPanel);
 
         // languages choices
         JPanel languagesPanel = createLanguagesCheckboxPanel();
-        mainPanel.add(languagesPanel);
+        languagesPanel.setBounds(220, 10, 200, 100);
+        frame.add(languagesPanel);
 
         // continent choices
         JPanel continentPanel = createContinentCheckboxPanel();
-        mainPanel.add(continentPanel);
+        continentPanel.setBounds(430, 10, 300, 150);
+        frame.add(continentPanel);
 
         // sea choice
         JPanel landlockedPanel = createLandlockedChoicePanel();
-        mainPanel.add(landlockedPanel);
+        landlockedPanel.setBounds(10, 120, 200, 100);
+        frame.add(landlockedPanel);
 
         // search button
         JButton searchButton = createSearchButton();
-        mainPanel.add(searchButton);
+        searchButton.setBounds(10, 220, 100, 30);
+        frame.add(searchButton);
 
-        result.setBackground(Color.BLUE);
-
-        mainPanel.setBackground(Color.GREEN);
-        frame.getContentPane().add(BorderLayout.NORTH, mainPanel);
-        frame.getContentPane().add(BorderLayout.AFTER_LAST_LINE, result);
         frame.setVisible(true);
 
     }
@@ -189,14 +178,15 @@ public class GUI {
         JButton jButton = new JButton("Search");
 
         jButton.addActionListener(e -> {
-            result.removeAll();
-            filteredCountries = new ArrayList<>(countries);
             filterCountriesByContinent();
+            System.out.println(filteredCountries.size());
             filterCountriesByLandlocked();
-            filterCountriesByDistance();
-            displayCountryFlags(result, filteredCountries);
-            result.revalidate();
-            result.repaint();
+            filterCountriesByDistance();// filter distance
+            // filter language
+            System.out.println(filteredCountries.size());
+            for (Country country: filteredCountries) {
+                System.out.println(country.getName().getCommon());
+            }
         });
         return jButton;
     }
@@ -215,7 +205,7 @@ public class GUI {
     }
 
     public void filterCountriesByLandlocked(){
-        // b2.isSelected =  (landlocked == true)
+        // b2.isSelected =  (landlocked == false)
         if (b2.isSelected()) {
             filteredCountries = filteredCountries.stream()
                     .filter(Country::isLandlocked)
@@ -234,19 +224,19 @@ public class GUI {
         double warsawLattitude = warsawLatLong[0];
         double warsawLongitude = warsawLatLong[1];
 
-        // System.out.println("slajeeeer: " + this.sliderValue);
+        System.out.println("slajeeeer: " + this.sliderValue);
 
         filteredCountries = filteredCountries.stream()
                 .filter(country -> {
-//                    System.out.println(country.getName().getCommon());
-//                    System.out.println(country.getCapital());
+                    System.out.println(country.getName().getCommon());
+                    System.out.println(country.getCapital());
                     if (country.getCapital() != null) {
                         double countryLatitude = country.getCapitalInfo().getLatlng()[0];
                         double countryLongitude = country.getCapitalInfo().getLatlng()[1];
 
-//                        System.out.println("lat: " + countryLatitude);
-//                        System.out.println("long: " + countryLongitude);
-//                        System.out.println("--------------------");
+                        System.out.println("lat: " + countryLatitude);
+                        System.out.println("long: " + countryLongitude);
+                        System.out.println("--------------------");
 
                         double distance = calculateDistance(warsawLattitude, warsawLongitude, countryLatitude, countryLongitude);
 
@@ -281,49 +271,5 @@ public class GUI {
         // distance in km
         return earthRadius * c;
     }
-
-    public void displayCountryFlags(JPanel panel, List<Country> countriesList) {
-        for (Country country : countriesList) {
-            try {
-                String imageUrl = country.getFlags().get("png");
-                BufferedImage image = ImageIO.read(new URL(imageUrl));
-
-                JLabel imageLabel = new JLabel();
-                ImageIcon imageIcon = new ImageIcon(image.getScaledInstance(100, 50, Image.SCALE_DEFAULT));
-                imageLabel.setIcon(imageIcon);
-
-                JPanel imagePanel = new JPanel();
-                imagePanel.setLayout(new BoxLayout(imagePanel, BoxLayout.Y_AXIS));
-
-                imageLabel.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        try {
-                            CountryFrame countryFrame = new CountryFrame(country, frame);  /// frame NOWE
-                            frame.setVisible(false);   /// NOWE
-                            countryFrame.setVisible(true);
-                        } catch (HeadlessException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                });
-
-                imagePanel.add(imageLabel, BorderLayout.CENTER);
-
-                JLabel name = new JLabel(country.getName().getCommon());
-                imageLabel.setToolTipText(country.getName().getCommon());
-                imageLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 20, 5));
-                imagePanel.add(name);
-                imagePanel.add(imageLabel);
-
-                panel.add(imagePanel);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-
 
 }
