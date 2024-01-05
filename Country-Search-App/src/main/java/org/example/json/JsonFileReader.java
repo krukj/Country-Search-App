@@ -11,7 +11,6 @@ import java.util.List;
 
 public class JsonFileReader {
     public static void main(String[] args) throws IOException {
-        List<Country> countries = createCountriesList("Country-Search-App/response.json");
     }
 
     public static List<Country> createCountriesList(String filePath) throws IOException {
@@ -20,11 +19,6 @@ public class JsonFileReader {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
 
-        List<Country> countries = List.of(objectMapper.readValue(new File(filePath), Country[].class));
-
-        for (Country country : countries) {
-            System.out.println(country);
-        }
-        return countries;
+        return List.of(objectMapper.readValue(new File(filePath), Country[].class));
     }
 }
