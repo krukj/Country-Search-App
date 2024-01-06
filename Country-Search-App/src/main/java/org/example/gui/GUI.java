@@ -35,7 +35,7 @@ public class GUI {
         frame = new JFrame("Country search app");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1400, 1400);
-        frame.setLayout(new FlowLayout());
+        frame.setLayout(new BorderLayout());
 
 
         mainPanel = new JPanel(new FlowLayout());
@@ -46,7 +46,7 @@ public class GUI {
         JLabel title = new JLabel("Find your next travel destination!");
         JPanel titlePanel = new JPanel();
         titlePanel.add(title);
-        frame.add(titlePanel);
+        mainPanel.add(titlePanel);
 
         // departure panel and slider panel
         JPanel fromPanel = createFromPanel();
@@ -82,7 +82,7 @@ public class GUI {
         // layout
         mainPanel.setBackground(Color.decode("#F4F1DE"));
         frame.getContentPane().add(BorderLayout.NORTH, mainPanel);
-        frame.getContentPane().add(BorderLayout.AFTER_LAST_LINE, result);
+        frame.add(BorderLayout.CENTER, new JScrollPane(result));
         frame.getContentPane().setBackground(Color.decode("#F4F1DE"));
         frame.setVisible(true);
 
@@ -221,6 +221,7 @@ public class GUI {
                 .filter(JCheckBox::isSelected)
                 .map(AbstractButton::getText)
                 .toList();
+        System.out.println(selectedContinents);
         filteredCountries = filteredCountries.stream()
                 .filter(country -> country.getContinents().stream()
                         .anyMatch(selectedContinents::contains))
@@ -238,8 +239,9 @@ public class GUI {
                     .collect(Collectors.toList());
         }
     }
-    // CZY TO FILTROWANIE PO DISTANCE NA PEWNO DOBRZE DZIALA ???
-    public void filterCountriesByDistance() { // JAKIS WYJATEK TRZEBA OGARNAC JESLI DEPARTURE COUNTRY NIE MA CAPITALINFO
+    // CZY TO FILTROWANIE PO DISTANCE NA PEWNO DOBRZE DZIALA ?
+    public void filterCountriesByDistance() {
+        // JAKIS WYJATEK TRZEBA OGARNAC JESLI DEPARTURE COUNTRY NIE MA CAPITALINFO
         // NP ZIGNOROWANIE TEGO I WYSWIETLENIE INFO O TYM
         double[] userCoordinates = countries.stream()
                 .filter(country -> country.getName().getCommon().equals(fromBox.getSelectedItem()))
@@ -283,6 +285,8 @@ public class GUI {
                 imagePanel.setLayout(new BoxLayout(imagePanel, BoxLayout.Y_AXIS));
                 imagePanel.add(imageLabel, BorderLayout.CENTER);
 
+                imagePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 20, 5));
+
                 JLabel name = new JLabel(country.getName().getCommon());
                 if (Objects.equals(name.getText(), "Saint Helena, Ascension and Tristan da Cunha")) {
                     name.setText("Saint Helena");
@@ -291,7 +295,7 @@ public class GUI {
                     name.setText("US Minor Outlying Islands");
                 }
                 imageLabel.setToolTipText("See more information");
-                imageLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 20, 5));
+                name.setForeground(Color.decode("#3d405b"));
                 imagePanel.add(name);
                 imagePanel.add(imageLabel);
                 imagePanel.setBackground(Color.decode("#F4F1DE"));
@@ -317,6 +321,7 @@ public class GUI {
                 throw new RuntimeException(e);
             }
         }
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 10, 20, 5));
     }
 
     private JPanel createSorterPanel(){
