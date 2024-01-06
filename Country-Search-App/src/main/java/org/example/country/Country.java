@@ -376,9 +376,6 @@ public class Country {
         return landlocked;
     }
 
-    public String[] getBoarders() {
-        return borders;
-    }
 
     public int getArea() {
         return area;

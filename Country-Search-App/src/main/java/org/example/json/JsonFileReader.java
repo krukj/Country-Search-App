@@ -22,9 +22,6 @@ public class JsonFileReader {
 
         List<Country> countries = List.of(objectMapper.readValue(new File(filePath), Country[].class));
 
-        for (Country country : countries) {
-            System.out.println(country);
-        }
         return countries;
     }
 }
