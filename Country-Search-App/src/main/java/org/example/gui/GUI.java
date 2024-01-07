@@ -59,8 +59,7 @@ public class GUI {
         Optional<Country> optionalCountry = countries.stream()
                 .filter(country -> Objects.equals(country.getName().getCommon(), departureCountryName))
                 .findFirst();
-
-        optionalCountry.ifPresent(country -> this.departureCountry = country);
+        optionalCountry.ifPresent(country -> departureCountry = country);
 
         // continent choices
         JPanel continentPanel = createContinentCheckboxPanel();
@@ -163,8 +162,13 @@ public class GUI {
             if (filteredCountries.isEmpty()){
                 result.add(createNoInfoPanel(), BorderLayout.CENTER);
             } else {
+                String departureCountryName = String.valueOf(fromBox.getSelectedItem());
+                Optional<Country> optionalCountry = countries.stream()
+                        .filter(country -> Objects.equals(country.getName().getCommon(), departureCountryName))
+                        .findFirst();
+                optionalCountry.ifPresent(country -> departureCountry = country);
                 filteredCountries.removeIf(country -> country.getName().getCommon()
-                        .equals(departureCountry.getName().getCommon()));
+                        .equals(departureCountryName));
                 sortCountries();
                 displayCountryFlags(result, filteredCountries);
             }
