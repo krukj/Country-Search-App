@@ -28,6 +28,8 @@ public class GUI {
     private JComboBox<String> sorterBox;
     private JComboBox<String> fromBox;
     private int sliderValue;
+    private final Color backgroundColor = Color.decode("#F4F1DE");
+    private Country departureCountry;
 
     public GUI() throws IOException {
         this.countries = JsonFileReader.createCountriesList("response.json");
@@ -40,13 +42,7 @@ public class GUI {
 
         mainPanel = new JPanel(new FlowLayout());
         result = new JPanel();
-        result.setBackground(Color.decode("#F4F1DE"));
-
-
-        JLabel title = new JLabel("Find your next travel destination!");
-        JPanel titlePanel = new JPanel();
-        titlePanel.add(title);
-        mainPanel.add(titlePanel);
+        result.setBackground(backgroundColor);
 
         // departure panel and slider panel
         JPanel fromPanel = createFromPanel();
@@ -58,6 +54,13 @@ public class GUI {
         fromAndSliderPanel.add(fromPanel);
         fromAndSliderPanel.add(sliderPanel);
         mainPanel.add(fromAndSliderPanel);
+
+        String departureCountryName = String.valueOf(fromBox.getSelectedItem());
+        Optional<Country> optionalCountry = countries.stream()
+                .filter(country -> Objects.equals(country.getName().getCommon(), departureCountryName))
+                .findFirst();
+
+        optionalCountry.ifPresent(country -> this.departureCountry = country);
 
         // continent choices
         JPanel continentPanel = createContinentCheckboxPanel();
@@ -80,10 +83,10 @@ public class GUI {
         mainPanel.add(randomButton);
 
         // layout
-        mainPanel.setBackground(Color.decode("#F4F1DE"));
+        mainPanel.setBackground(backgroundColor);
         frame.getContentPane().add(BorderLayout.NORTH, mainPanel);
         frame.add(BorderLayout.CENTER, new JScrollPane(result));
-        frame.getContentPane().setBackground(Color.decode("#F4F1DE"));
+        frame.getContentPane().setBackground(backgroundColor);
         frame.setVisible(true);
 
     }
@@ -106,12 +109,12 @@ public class GUI {
         jPanel.add(cont4);
         jPanel.add(cont5);
         jPanel.add(cont6);
-        jPanel.setBackground(Color.decode("#F4F1DE"));
+        jPanel.setBackground(backgroundColor);
         continentPanel.add(jPanel, BorderLayout.CENTER);
 
         TitledBorder titledBorder = BorderFactory.createTitledBorder("Choose continents");
         continentPanel.setBorder(titledBorder);
-        continentPanel.setBackground(Color.decode("#F4F1DE"));
+        continentPanel.setBackground(backgroundColor);
 
 
         return continentPanel;
@@ -122,6 +125,7 @@ public class GUI {
         landlockedPanel.setLayout(new BorderLayout());
 
         JPanel jPanel = new JPanel();
+        jPanel.setBackground(backgroundColor);
         b1 = new JRadioButton("Yes");
         b2 = new JRadioButton("No");
         JRadioButton b3 = new JRadioButton("Don't care");
@@ -143,7 +147,7 @@ public class GUI {
 
         TitledBorder titledBorder = BorderFactory.createTitledBorder("Sea or ocean?");
         landlockedPanel.setBorder(titledBorder);
-
+        landlockedPanel.setBackground(backgroundColor);
         return landlockedPanel;
     }
 
@@ -157,9 +161,10 @@ public class GUI {
             filterCountriesByLandlocked();
             filterCountriesByDistance();
             if (filteredCountries.isEmpty()){
-                result.add(createNoInfoPanel());
+                result.add(createNoInfoPanel(), BorderLayout.CENTER);
             } else {
-                filteredCountries.removeIf(country -> country.getName().getCommon().equals(fromBox.getSelectedItem()));
+                filteredCountries.removeIf(country -> country.getName().getCommon()
+                        .equals(departureCountry.getName().getCommon()));
                 sortCountries();
                 displayCountryFlags(result, filteredCountries);
             }
@@ -181,9 +186,9 @@ public class GUI {
 
         sliderPanel.add(jSlider, BorderLayout.CENTER);
 
-        TitledBorder titledBorder = BorderFactory.createTitledBorder("Choose distance (km)");
+        TitledBorder titledBorder = BorderFactory.createTitledBorder("Choose max distance (km)");
         sliderPanel.setBorder(titledBorder);
-
+        sliderPanel.setBackground(backgroundColor);
         return sliderPanel;
     }
     public JSlider createDistanceSlider(){
@@ -244,7 +249,7 @@ public class GUI {
         // JAKIS WYJATEK TRZEBA OGARNAC JESLI DEPARTURE COUNTRY NIE MA CAPITALINFO
         // NP ZIGNOROWANIE TEGO I WYSWIETLENIE INFO O TYM
         double[] userCoordinates = countries.stream()
-                .filter(country -> country.getName().getCommon().equals(fromBox.getSelectedItem()))
+                .filter(country -> country.getName().getCommon().equals(departureCountry.getName().getCommon()))
                 .map(Country::getLatlng)
                 .findFirst()
                 .orElse(null);
@@ -279,7 +284,7 @@ public class GUI {
                 JLabel imageLabel = new JLabel();
                 ImageIcon imageIcon = new ImageIcon(image.getScaledInstance(200, 100, Image.SCALE_DEFAULT));
                 imageLabel.setIcon(imageIcon);
-                imageLabel.setBackground(Color.decode("#F4F1DE"));
+                imageLabel.setBackground(backgroundColor);
 
                 JPanel imagePanel = new JPanel();
                 imagePanel.setLayout(new BoxLayout(imagePanel, BoxLayout.Y_AXIS));
@@ -298,16 +303,16 @@ public class GUI {
                 name.setForeground(Color.decode("#3d405b"));
                 imagePanel.add(name);
                 imagePanel.add(imageLabel);
-                imagePanel.setBackground(Color.decode("#F4F1DE"));
+                imagePanel.setBackground(backgroundColor);
 
-                imagePanel.setMaximumSize(new Dimension(110, 60));
+                //imagePanel.setMaximumSize(new Dimension(110, 60));
                 panel.add(imagePanel);
 
                 imageLabel.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         try {
-                            CountryFrame countryFrame = new CountryFrame(country, frame, countries);
+                            CountryFrame countryFrame = new CountryFrame(country, frame, countries, departureCountry);
                             frame.setVisible(false);
                             countryFrame.setVisible(true);
                         } catch (HeadlessException ex) {
@@ -331,14 +336,16 @@ public class GUI {
         jPanel.add(sorterBox);
         TitledBorder titledBorder = BorderFactory.createTitledBorder("Sort by");
         jPanel.setBorder(titledBorder);
-        sorterBox.addActionListener(e -> { // TUTAJ COS ZMIENIC ZEBY NIEM MOZNA BYLO NAJPIERW TEGO KLIKNAC
-            // A DOPIERO POTEM SEARCH
-            result.removeAll();
-            sortCountries();
-            displayCountryFlags(result, filteredCountries);
-            result.revalidate();
-            result.repaint();
+        sorterBox.addActionListener(e -> {
+            if (this.filteredCountries != null) {
+                result.removeAll();
+                sortCountries();
+                displayCountryFlags(result, filteredCountries);
+                result.revalidate();
+                result.repaint();
+            }
         });
+        jPanel.setBackground(backgroundColor);
         return jPanel;
     }
 
@@ -354,6 +361,7 @@ public class GUI {
         jPanel.add(fromBox);
         TitledBorder titledBorder = BorderFactory.createTitledBorder("Country of departure");
         jPanel.setBorder(titledBorder);
+        jPanel.setBackground(backgroundColor);
         return jPanel;
     }
 
@@ -389,6 +397,7 @@ public class GUI {
         } else {
             jLabel = new JLabel("Please select at least one continent");
         }
+        jPanel.setBackground(backgroundColor);
         jPanel.add(jLabel);
         return jPanel;
     }

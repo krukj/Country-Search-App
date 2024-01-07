@@ -22,13 +22,15 @@ public class CountryPanel extends JPanel {
     private final List<Country> countries;
     private final Map<String, String> countryCodeToName;
     private final Color textColor = Color.decode("#3d405b");
+    private Country departureCountry;
 
-    public CountryPanel(Country country, List<Country> countries) throws IOException {
+    public CountryPanel(Country country, List<Country> countries, Country departureCountry) throws IOException {
         this.country = country;
         this.countries = countries;
         this.countryCodeToName = CountryMapper();
+        this.departureCountry = departureCountry;
 
-        setLayout(new FlowLayout(FlowLayout.LEFT));
+        setLayout(new FlowLayout(FlowLayout.CENTER));
 
         JPanel textPanel = new JPanel();
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
@@ -311,20 +313,21 @@ public class CountryPanel extends JPanel {
     }
 
     private JLabel createDistanceLabel(){ // ZMIENIC ZEBY BYLA ODLEGLOSC OD WYBRANEGO KRAJU A NIE POLSKI
-        double[] warsawLatLong = countries.stream()
-                .filter(country -> country.getName().getCommon().equals("Poland"))
+        double[] userCoordinates = countries.stream()
+                .filter(country -> country.getName().getCommon().equals(departureCountry.getName().getCommon()))
                 .map(Country::getLatlng)
                 .findFirst()
                 .orElse(null);
 
-        assert warsawLatLong != null;
-        double warsawLatitude = warsawLatLong[0];
-        double warsawLongitude = warsawLatLong[1];
+        assert userCoordinates != null;
+        double userLat = userCoordinates[0];
+        double userLong = userCoordinates[1];
+
         JLabel jLabel;
         if (country.getCapitalInfo() != null) {
             double countryLatitude = country.getCapitalInfo().getLatlng()[0];
             double countryLongitude = country.getCapitalInfo().getLatlng()[1];
-            int distance = calculateDistance(warsawLatitude, warsawLongitude, countryLatitude, countryLongitude);
+            int distance = calculateDistance(userLat, userLong, countryLatitude, countryLongitude);
             jLabel = new JLabel("<html><font size=4>Distance: </font><font size=5>" + distance
                     + " km" + "</font></html>");
         } else {
