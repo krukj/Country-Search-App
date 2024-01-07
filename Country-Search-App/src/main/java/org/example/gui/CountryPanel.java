@@ -22,7 +22,7 @@ public class CountryPanel extends JPanel {
     private final List<Country> countries;
     private final Map<String, String> countryCodeToName;
     private final Color textColor = Color.decode("#3d405b");
-    private Country departureCountry;
+    private final Country departureCountry;
 
     public CountryPanel(Country country, List<Country> countries, Country departureCountry) throws IOException {
         this.country = country;
@@ -312,12 +312,9 @@ public class CountryPanel extends JPanel {
         return jLabel;
     }
 
-    private JLabel createDistanceLabel(){ // ZMIENIC ZEBY BYLA ODLEGLOSC OD WYBRANEGO KRAJU A NIE POLSKI
-        double[] userCoordinates = countries.stream()
-                .filter(country -> country.getName().getCommon().equals(departureCountry.getName().getCommon()))
-                .map(Country::getLatlng)
-                .findFirst()
-                .orElse(null);
+    private JLabel createDistanceLabel(){
+
+        double[] userCoordinates = departureCountry.getCapitalInfo().getLatlng();
 
         assert userCoordinates != null;
         double userLat = userCoordinates[0];
