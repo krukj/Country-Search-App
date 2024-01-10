@@ -32,7 +32,7 @@ public class GUI {
     private Country departureCountry;
 
     public GUI() throws IOException {
-        this.countries = JsonFileReader.createCountriesList("response.json");
+        this.countries = JsonFileReader.createCountriesList("Country-Search-App/response.json");
         // frame
         frame = new JFrame("Country search app");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -202,6 +202,7 @@ public class GUI {
         jSlider.setPaintLabels(true);
 
         // set spacing
+        sliderValue = 4000;
         jSlider.setMajorTickSpacing(2000);
         jSlider.setMinorTickSpacing(500);
 
