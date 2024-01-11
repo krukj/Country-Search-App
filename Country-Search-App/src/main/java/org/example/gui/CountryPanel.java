@@ -284,22 +284,22 @@ public class CountryPanel extends JPanel {
         return jLabel;
     }
 
-    private JLabel createCarLabel() { // CAR SIGN TRZEBA WYSWIETLIC INACZEJ BO JEST W POSTACI LISTY
+    private JLabel createCarLabel() {
         Country.Car car = country.getCar();
         // Build HTML content for the label
         StringBuilder htmlContent = new StringBuilder("<html><font size=4>Car Information: </font>");
 
         // Append signs information
-        htmlContent.append("<font size=5>Signs: [");
+        htmlContent.append("<font size=5>Signs: ");
         List<String> signs = List.of(car.getSigns());
         for (int i = 0; i < signs.size(); i++) {
             htmlContent.append(signs.get(i));
             // Add comma and space if it's not the last sign
             if (i < signs.size() - 1) {
-                htmlContent.append(", ");
+                htmlContent.append("<font size=5>, </font>");
             }
         }
-        htmlContent.append("]</font>");
+        htmlContent.append("</font>");
 
         // Append side information
         htmlContent.append("<font size=5>, Side: ").append(car.getSide()).append("</font></html>");
@@ -313,8 +313,11 @@ public class CountryPanel extends JPanel {
     }
 
     private JLabel createDistanceLabel(){
-
-        double[] userCoordinates = departureCountry.getCapitalInfo().getLatlng();
+        double[] userCoordinates = countries.stream()
+                .filter(country -> country.getName().getCommon().equals(departureCountry.getName().getCommon()))
+                .map(Country::getLatlng)
+                .findFirst()
+                .orElse(null);
 
         assert userCoordinates != null;
         double userLat = userCoordinates[0];

@@ -33,7 +33,5 @@ public class WelcomePanel extends JPanel {
         jPanel.setBackground(backgroundColor);
         return jPanel;
     }
-    private JPanel createBlankPanel(){
-        return new JPanel();
-    }
+
 }

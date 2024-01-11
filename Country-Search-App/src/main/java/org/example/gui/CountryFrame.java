@@ -20,8 +20,8 @@ public class CountryFrame extends JFrame {
         add(countryPanel);
         add(goBackButton);
         setTitle("Country description");
-        setSize(1400, 1400); // MOZE USTAWIC POTEM MNIEJSZE OKNO
-        setLayout(new FlowLayout()); // TEN UKLAD LEPSZY
+        setSize(1400, 1400);
+        setLayout(new FlowLayout());
         getContentPane().setBackground(Color.decode("#f4f1de"));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Zamyka tylko bieżące okno
         setLocationRelativeTo(null); // Ustawienie okna na środku ekranu

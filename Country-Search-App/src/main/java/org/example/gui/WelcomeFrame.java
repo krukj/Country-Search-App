@@ -5,7 +5,6 @@ import java.awt.*;
 import java.io.IOException;
 
 public class WelcomeFrame extends JFrame {
-    private GUI gui;
     public WelcomeFrame() throws HeadlessException {
         WelcomePanel welcomePanel = new WelcomePanel();
         setTitle("Country search app");
@@ -23,22 +22,30 @@ public class WelcomeFrame extends JFrame {
     }
     private JPanel createButtonPanel(){
         JPanel jPanel = new JPanel();
+        jPanel.setLayout(new BoxLayout(jPanel, BoxLayout.Y_AXIS));
         JButton startButton = new JButton("Start");
         startButton.addActionListener(e -> {
             try {
-                openGUI();
+                openSearchFrame();
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         });
+        JButton infoButton = new JButton("Info");
+        infoButton.addActionListener(e -> openInfo());
         jPanel.add(startButton);
+        jPanel.add(infoButton);
         jPanel.setBackground(Color.decode("#E07A5F"));
         return jPanel;
     }
-
-    private void openGUI() throws IOException {
-        gui = new GUI();
-        gui.frame.setVisible(true);
+    private void openSearchFrame() throws IOException {
+        SearchFrame searchFrame = new SearchFrame();
+        searchFrame.setVisible(true);
+        dispose();
+    }
+    private void openInfo() {
+        InfoFrame infoFrame = new InfoFrame();
+        infoFrame.setVisible(true);
         dispose();
     }
 }
