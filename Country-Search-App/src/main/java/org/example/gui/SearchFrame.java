@@ -12,16 +12,15 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class GUI {
-    public JFrame frame;
+public class SearchFrame extends JFrame {
     public JPanel mainPanel;  // search panel
     public JPanel result; // flags
-    public final List<Country> countries; // countries from api response
+    public List<Country> countries; // countries from api response
     private List<Country> filteredCountries;
     private JCheckBox cont1, cont2, cont3, cont4, cont5, cont6; // continent choice
     private JRadioButton b1, b2;
@@ -30,14 +29,17 @@ public class GUI {
     private int sliderValue;
     private final Color backgroundColor = Color.decode("#F4F1DE");
     private Country departureCountry;
+    private double[] userCoordinates = {};
+    private final Color textColor = Color.decode("#3d405b");
+    private final Font borderFont = new Font("MONOSPACED", Font.PLAIN, 13);
 
-    public GUI() throws IOException {
+    public SearchFrame() throws IOException {
         this.countries = JsonFileReader.createCountriesList("response.json");
         // frame
-        frame = new JFrame("Country search app");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1400, 1400);
-        frame.setLayout(new BorderLayout());
+        setTitle("Country search app");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1400, 1400);
+        setLayout(new BorderLayout());
 
 
         mainPanel = new JPanel(new FlowLayout());
@@ -45,15 +47,15 @@ public class GUI {
         result.setBackground(backgroundColor);
 
         // departure panel and slider panel
-        JPanel fromPanel = createFromPanel();
+        JPanel departurePanel = createDeparturePanel();
         JPanel sliderPanel = createSliderPanel();
 
         // departure panel above slider
-        JPanel fromAndSliderPanel = new JPanel();
-        fromAndSliderPanel.setLayout(new BoxLayout(fromAndSliderPanel, BoxLayout.Y_AXIS));
-        fromAndSliderPanel.add(fromPanel);
-        fromAndSliderPanel.add(sliderPanel);
-        mainPanel.add(fromAndSliderPanel);
+        JPanel departureAndSliderPanel = new JPanel();
+        departureAndSliderPanel.setLayout(new BoxLayout(departureAndSliderPanel, BoxLayout.Y_AXIS));
+        departureAndSliderPanel.add(departurePanel);
+        departureAndSliderPanel.add(sliderPanel);
+        mainPanel.add(departureAndSliderPanel);
 
         String departureCountryName = String.valueOf(fromBox.getSelectedItem());
         Optional<Country> optionalCountry = countries.stream()
@@ -83,10 +85,10 @@ public class GUI {
 
         // layout
         mainPanel.setBackground(backgroundColor);
-        frame.getContentPane().add(BorderLayout.NORTH, mainPanel);
-        frame.add(BorderLayout.CENTER, new JScrollPane(result));
-        frame.getContentPane().setBackground(backgroundColor);
-        frame.setVisible(true);
+        getContentPane().add(BorderLayout.NORTH, mainPanel);
+        add(BorderLayout.CENTER, new JScrollPane(result));
+        getContentPane().setBackground(backgroundColor);
+        setVisible(true);
 
     }
 
@@ -112,6 +114,7 @@ public class GUI {
         continentPanel.add(jPanel, BorderLayout.CENTER);
 
         TitledBorder titledBorder = BorderFactory.createTitledBorder("Choose continents");
+        titledBorder.setTitleFont(borderFont);
         continentPanel.setBorder(titledBorder);
         continentPanel.setBackground(backgroundColor);
 
@@ -145,6 +148,7 @@ public class GUI {
         landlockedPanel.add(jPanel, BorderLayout.CENTER);
 
         TitledBorder titledBorder = BorderFactory.createTitledBorder("Sea or ocean?");
+        titledBorder.setTitleFont(borderFont);
         landlockedPanel.setBorder(titledBorder);
         landlockedPanel.setBackground(backgroundColor);
         return landlockedPanel;
@@ -154,23 +158,38 @@ public class GUI {
         JButton jButton = new JButton("Search");
 
         jButton.addActionListener(e -> {
+            // clear result panel
             result.removeAll();
             filteredCountries = new ArrayList<>(countries);
-            filterCountriesByContinent();
-            filterCountriesByLandlocked();
-            filterCountriesByDistance();
-            if (filteredCountries.isEmpty()){
-                result.add(createNoInfoPanel(), BorderLayout.CENTER);
+
+            // get departure country
+            String departureCountryName = String.valueOf(fromBox.getSelectedItem());
+            Optional<Country> optionalCountry = countries.stream()
+                    .filter(country -> Objects.equals(country.getName().getCommon(), departureCountryName))
+                    .findFirst();
+            optionalCountry.ifPresent(country -> departureCountry = country);
+
+            if (departureCountry.getCapitalInfo().getLatlng() == null) {
+                result.setLayout(new FlowLayout());
+                // display info about no coordinates of departure country's coordinates
+                result.add(createNoCoordinatesPanel(), BorderLayout.CENTER);
             } else {
-                String departureCountryName = String.valueOf(fromBox.getSelectedItem());
-                Optional<Country> optionalCountry = countries.stream()
-                        .filter(country -> Objects.equals(country.getName().getCommon(), departureCountryName))
-                        .findFirst();
-                optionalCountry.ifPresent(country -> departureCountry = country);
+                // filter countries
+                filterCountriesByContinent();
+                filterCountriesByLandlocked();
+                filterCountriesByDistance();
+                // remove departure country from the list
                 filteredCountries.removeIf(country -> country.getName().getCommon()
                         .equals(departureCountryName));
-                sortCountries();
-                displayCountryFlags(result, filteredCountries);
+                // display info about no countries matching the choices or no selected continent
+                if (filteredCountries.isEmpty() || noContinentSelected()){
+                    result.setLayout(new FlowLayout());
+                    result.add(createNoInfoPanel(), BorderLayout.AFTER_LAST_LINE);
+                } else {
+                    sortCountries();
+                    // display flags of filtered countries
+                    displayCountryFlags(result, filteredCountries);
+                }
             }
             result.revalidate();
             result.repaint();
@@ -191,6 +210,7 @@ public class GUI {
         sliderPanel.add(jSlider, BorderLayout.CENTER);
 
         TitledBorder titledBorder = BorderFactory.createTitledBorder("Choose max distance (km)");
+        titledBorder.setTitleFont(borderFont);
         sliderPanel.setBorder(titledBorder);
         sliderPanel.setBackground(backgroundColor);
         return sliderPanel;
@@ -210,7 +230,7 @@ public class GUI {
     }
     public JButton createRandomCountryButton(){
         JButton jButton = new JButton("Random country");
-        jButton.addActionListener(e -> { // TUTAJ ZMIENIC LAYOUT ZEBY FLAGA BYLA PO SRODKU
+        jButton.addActionListener(e -> {
             result.removeAll();
             filteredCountries = new ArrayList<>(countries);
             int random = new Random().nextInt(filteredCountries.size());
@@ -231,7 +251,6 @@ public class GUI {
                 .filter(JCheckBox::isSelected)
                 .map(AbstractButton::getText)
                 .toList();
-        System.out.println(selectedContinents);
         filteredCountries = filteredCountries.stream()
                 .filter(country -> country.getContinents().stream()
                         .anyMatch(selectedContinents::contains))
@@ -249,37 +268,31 @@ public class GUI {
                     .collect(Collectors.toList());
         }
     }
-    // CZY TO FILTROWANIE PO DISTANCE NA PEWNO DOBRZE DZIALA ?
     public void filterCountriesByDistance() {
-        // JAKIS WYJATEK TRZEBA OGARNAC JESLI DEPARTURE COUNTRY NIE MA CAPITALINFO
-        // NP ZIGNOROWANIE TEGO I WYSWIETLENIE INFO O TYM
-        double[] userCoordinates = countries.stream()
-                .filter(country -> country.getName().getCommon().equals(departureCountry.getName().getCommon()))
-                .map(Country::getLatlng)
-                .findFirst()
-                .orElse(null);
 
-        assert userCoordinates != null;
-        double userLat = userCoordinates[0];
-        double userLong = userCoordinates[1];
+        userCoordinates = departureCountry.getCapitalInfo().getLatlng();
 
-        filteredCountries = filteredCountries.stream()
-                .filter(country -> {
-                    if (country.getCapitalInfo().getLatlng() != null) {
-                        double countryLatitude = country.getCapitalInfo().getLatlng()[0];
-                        double countryLongitude = country.getCapitalInfo().getLatlng()[1];
+        if (userCoordinates != null) {
+            double userLat = userCoordinates[0];
+            double userLong = userCoordinates[1];
+            filteredCountries = filteredCountries.stream()
+                    .filter(country -> {
+                        if (country.getCapitalInfo().getLatlng() != null) {
+                            double countryLatitude = country.getCapitalInfo().getLatlng()[0];
+                            double countryLongitude = country.getCapitalInfo().getLatlng()[1];
 
-                        double distance = calculateDistance(userLat, userLong, countryLatitude, countryLongitude);
-                        return distance <= this.sliderValue;
-                    }
-                    else {
-                        return false;
-                    }
-                })
-                .collect(Collectors.toList());
+                            double distance = calculateDistance(userLat, userLong, countryLatitude, countryLongitude);
+                            return distance <= this.sliderValue;
+                        } else {
+                            return false;
+                        }
+                    })
+                    .collect(Collectors.toList());
+        }
     }
 
     public void displayCountryFlags(JPanel panel, List<Country> countriesList) {
+        JFrame parentFrame = this;
         panel.setLayout(new GridLayout(0, 5));
         for (Country country : countriesList) {
             try {
@@ -298,6 +311,10 @@ public class GUI {
                 imagePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 20, 5));
 
                 JLabel name = new JLabel(country.getName().getCommon());
+                Font nameFont = new Font("MONOSPACED", Font.PLAIN, 14);
+                name.setFont(nameFont);
+
+                // changing names to shorter forms
                 if (Objects.equals(name.getText(), "Saint Helena, Ascension and Tristan da Cunha")) {
                     name.setText("Saint Helena");
                 }
@@ -305,20 +322,21 @@ public class GUI {
                     name.setText("US Minor Outlying Islands");
                 }
                 imageLabel.setToolTipText("See more information");
+                imageLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
                 name.setForeground(Color.decode("#3d405b"));
                 imagePanel.add(name);
                 imagePanel.add(imageLabel);
                 imagePanel.setBackground(backgroundColor);
-
-                //imagePanel.setMaximumSize(new Dimension(110, 60));
                 panel.add(imagePanel);
 
+                // open country frame when mouse clicked
                 imageLabel.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         try {
-                            CountryFrame countryFrame = new CountryFrame(country, frame, countries, departureCountry);
-                            frame.setVisible(false);
+                            CountryFrame countryFrame = new CountryFrame(country, parentFrame,
+                                    countries, departureCountry);
+                            parentFrame.setVisible(false);
                             countryFrame.setVisible(true);
                         } catch (HeadlessException ex) {
                             ex.printStackTrace();
@@ -340,6 +358,7 @@ public class GUI {
         sorterBox = new JComboBox<>(choices);
         jPanel.add(sorterBox);
         TitledBorder titledBorder = BorderFactory.createTitledBorder("Sort by");
+        titledBorder.setTitleFont(borderFont);
         jPanel.setBorder(titledBorder);
         sorterBox.addActionListener(e -> {
             if (this.filteredCountries != null) {
@@ -354,7 +373,7 @@ public class GUI {
         return jPanel;
     }
 
-    private JPanel createFromPanel(){
+    private JPanel createDeparturePanel(){
         JPanel jPanel = new JPanel();
         List<String> names = new ArrayList<>();
         for (Country country : countries) {
@@ -365,6 +384,7 @@ public class GUI {
         fromBox = new JComboBox<>(model);
         jPanel.add(fromBox);
         TitledBorder titledBorder = BorderFactory.createTitledBorder("Country of departure");
+        titledBorder.setTitleFont(borderFont);
         jPanel.setBorder(titledBorder);
         jPanel.setBackground(backgroundColor);
         return jPanel;
@@ -376,39 +396,63 @@ public class GUI {
                     .sorted(Comparator.comparing(country -> country.getName().getCommon()))
                     .collect(Collectors.toList());
         } else if (sorterBox.getSelectedIndex() == 1) {
-            double[] userCoordinates = countries.stream()
+            userCoordinates = countries.stream()
                     .filter(country -> country.getName().getCommon().equals(fromBox.getSelectedItem()))
                     .map(Country::getLatlng)
                     .findFirst()
                     .orElse(null);
-
-            assert userCoordinates != null;
-            double userLat = userCoordinates[0];
-            double userLong = userCoordinates[1];
-            filteredCountries = filteredCountries.stream()
-                    .filter(country -> country.getCapitalInfo() != null)
-                    .filter(country -> country.getCapitalInfo().getLatlng() != null)
-                    .sorted(Comparator.comparing(country -> calculateDistance(userLat, userLong,
-                            country.getCapitalInfo().getLatlng()[0], country.getCapitalInfo().getLatlng()[1])))
-                    .collect(Collectors.toList());
+            if (userCoordinates != null) {
+                double userLat = userCoordinates[0];
+                double userLong = userCoordinates[1];
+                filteredCountries = filteredCountries.stream()
+                        .filter(country -> country.getCapitalInfo() != null)
+                        .filter(country -> country.getCapitalInfo().getLatlng() != null)
+                        .sorted(Comparator.comparing(country -> calculateDistance(userLat, userLong,
+                                country.getCapitalInfo().getLatlng()[0], country.getCapitalInfo().getLatlng()[1])))
+                        .collect(Collectors.toList());
+            }
         }
     }
 
-    private JPanel createNoInfoPanel(){
+    private JPanel createNoCoordinatesPanel(){
         JPanel jPanel = new JPanel();
-        JLabel jLabel;
-        if (isAnyContinentSelected()) {
-            jLabel = new JLabel("Sorry, we couldn't find any country that matches your choices :(");
-        } else {
-            jLabel = new JLabel("Please select at least one continent");
-        }
+        JLabel jLabel = new JLabel("<html><font size=5>Sorry, we couldn't find info about your " +
+                "coordinates and we are not able to calculate the distance." +
+                " Please select another country of departure." +
+                "</font></html>");
+        jLabel.setPreferredSize(new Dimension(750, 150));
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
         jPanel.setBackground(backgroundColor);
         jPanel.add(jLabel);
         return jPanel;
     }
-    public boolean isAnyContinentSelected() {
-        return cont1.isSelected() || cont2.isSelected() || cont3.isSelected() ||
-                cont4.isSelected() || cont5.isSelected() || cont6.isSelected();
+    private JPanel createNoInfoPanel(){
+        JPanel jPanel = new JPanel();
+        JLabel jLabel = new JLabel();
+        if (departureCountry.getCapitalInfo().getLatlng() == null) {
+            jLabel = new JLabel("<html><font size=5>Sorry, we couldn't find info about your " +
+                    "coordinates and we are not able to calculate the distance." +
+                    " Please select another country of departure." +
+                    "</font></html>");
+        } else if (noContinentSelected()){
+            jLabel = new JLabel("<html><font size=5>Please select at least one continent.</font></html>");
+        } else if (filteredCountries.isEmpty()) {
+            jLabel = new JLabel("<html><font size=5>Sorry, we couldn't find any country that matches" +
+                    " your choices. :(</font></html>");
+        }
+        jLabel.setPreferredSize(new Dimension(750, 150));
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
+        jPanel.setBackground(backgroundColor);
+        jPanel.add(jLabel);
+        return jPanel;
+    }
+    private boolean noContinentSelected() {
+        return !(cont1.isSelected() || cont2.isSelected() || cont3.isSelected() ||
+                cont4.isSelected() || cont5.isSelected() || cont6.isSelected());
     }
 
     public int calculateDistance(double lat1, double lon1, double lat2, double lon2) {

@@ -376,6 +376,7 @@ public class Country {
         return landlocked;
     }
 
+
     public int getArea() {
         return area;
     }

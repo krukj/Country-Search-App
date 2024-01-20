@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,13 +22,16 @@ public class CountryPanel extends JPanel {
     private final Country country;
     private final List<Country> countries;
     private final Map<String, String> countryCodeToName;
+    private final Color textColor = Color.decode("#3d405b");
+    private final Country departureCountry;
 
-    public CountryPanel(Country country, List<Country> countries) throws IOException {
+    public CountryPanel(Country country, List<Country> countries, Country departureCountry) throws IOException {
         this.country = country;
         this.countries = countries;
         this.countryCodeToName = CountryMapper();
+        this.departureCountry = departureCountry;
 
-        setLayout(new FlowLayout(FlowLayout.LEFT));
+        setLayout(new FlowLayout(FlowLayout.CENTER));
 
         JPanel textPanel = new JPanel();
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
@@ -58,17 +62,25 @@ public class CountryPanel extends JPanel {
             }
         }
         JPanel imagePanel = createImagePanel();
-        textPanel.setPreferredSize(new Dimension(500,500));
-        textPanel.setBackground(Color.PINK);
+        textPanel.setPreferredSize(new Dimension(700,700));
+        textPanel.setBackground(Color.decode("#f4f1de"));
         imagePanel.add(textPanel);
-        imagePanel.setBackground(Color.CYAN);
+        imagePanel.setBackground(Color.decode("#f4f1de"));
         add(imagePanel, BorderLayout.WEST);
-        setBackground(Color.orange);
+        setBackground(Color.decode("#f4f1de"));
     }
 
     private JLabel createNameLabel(){
-        JLabel jLabel = new JLabel("<html><font size=20>" + country.getName().getCommon() + "</font></html>");
-        jLabel.setForeground(Color.black);
+        JLabel jLabel;
+        if (country.getName() != null & country.getName().getCommon() != null) {
+            jLabel = new JLabel("<html><span style='font-size:20px;'>" + country.getName().getCommon()
+                    + "</span></html>");
+        } else {
+            jLabel = new JLabel("<html><font size=20>No info</font></html>");
+        }
+        Font labelFont = new Font("MONOSPACED", Font.BOLD, 20);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
         return jLabel;
     }
 
@@ -77,14 +89,17 @@ public class CountryPanel extends JPanel {
 
         // Build HTML content for the label
         StringBuilder htmlContent = new StringBuilder("<html><font size=4>Capital(s): </font>");
+        if (capitals.isEmpty()) {
+            htmlContent.append("<font size=5>No info</font>");
+        } else {
+            for (int i = 0; capitals.size() > i; i++) {
+                String capital = capitals.get(i);
+                htmlContent.append("<font size=5>").append(capital).append("</font>");
 
-        for (int i = 0; capitals.size() > i; i++) {
-            String capital = capitals.get(i);
-            htmlContent.append("<font size=5>").append(capital).append("</font>");
-
-            // Add comma and space if it's not the last capital
-            if (i < capitals.size() - 1) {
-                htmlContent.append(", ");
+                // Add comma and space if it's not the last capital
+                if (i < capitals.size() - 1) {
+                    htmlContent.append(", ");
+                }
             }
         }
 
@@ -92,7 +107,9 @@ public class CountryPanel extends JPanel {
 
         // Create and configure the JLabel
         JLabel jLabel = new JLabel(htmlContent.toString());
-        jLabel.setForeground(Color.black);
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
         return jLabel;
     }
 
@@ -102,13 +119,17 @@ public class CountryPanel extends JPanel {
         // Build HTML content for the label
         StringBuilder htmlContent = new StringBuilder("<html><font size=4>Continent(s): </font>");
 
-        for (int i = 0; continents.size() > i; i++) {
-            String continent = continents.get(i);
-            htmlContent.append("<font size=5>").append(continent).append("</font>");
+        if (continents.isEmpty()) {
+            htmlContent.append("<font size=5>No info</font>");
+        } else {
+            for (int i = 0; continents.size() > i; i++) {
+                String continent = continents.get(i);
+                htmlContent.append("<font size=5>").append(continent).append("</font>");
 
-            // Add comma and space if it's not the last continent
-            if (i < continents.size() - 1) {
-                htmlContent.append(", ");
+                // Add comma and space if it's not the last continent
+                if (i < continents.size() - 1) {
+                    htmlContent.append(", ");
+                }
             }
         }
 
@@ -116,28 +137,41 @@ public class CountryPanel extends JPanel {
 
         // Create and configure the JLabel
         JLabel jLabel = new JLabel(htmlContent.toString());
-        jLabel.setForeground(Color.black);
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
         return jLabel;
     }
 
     private JLabel createSubregionLabel(){
-        JLabel jLabel = new JLabel("<html><font size=4>Subregion: </font><font size=5>" + country.getSubregion()
-                + "</font></html>");
-        jLabel.setForeground(Color.black);
+        JLabel jLabel;
+        if (country.getSubregion() != null) {
+            jLabel = new JLabel("<html><font size=4>Subregion: </font><font size=5>" + country.getSubregion()
+                    + "</font></html>");
+        } else {
+            jLabel = new JLabel("<html><font size=4>Subregion: </font><font size=5>No info</font></html>");
+        }
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
         return jLabel;
     }
 
     private JLabel createPopulationLabel(){
         JLabel jLabel = new JLabel("<html><font size=4>Population: </font><font size=5>" + country.getPopulation()
                 + "</font></html>");
-        jLabel.setForeground(Color.black);
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
         return jLabel;
     }
 
     private JLabel createAreaLabel(){
         JLabel jLabel = new JLabel("<html><font size=4>Area: </font><font size=5>" + country.getArea()
                 + " km²" + "</font></html>");
-        jLabel.setForeground(Color.black);
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
         return jLabel;
     }
 
@@ -145,48 +179,57 @@ public class CountryPanel extends JPanel {
         Map<String, String> languagesMap = country.getLanguages();
 
         // Using StringBuilder to build the HTML content
-        StringBuilder htmlContent = new StringBuilder("<html><font size=4>Languages spoken: </font><font size=5>");
+        StringBuilder htmlContent = new StringBuilder("<html><font size=4>Language(s) spoken: </font><font size=5>");
 
         // Iterate through the values of the languagesMap and append them to the HTML content
-        languagesMap.values().forEach(language -> htmlContent.append(language).append(", "));
+        if (!languagesMap.values().isEmpty()) {
+            languagesMap.values().forEach(language -> htmlContent.append(language).append(", "));
 
-        // Remove the trailing comma and space
-        if (htmlContent.length() > 0) {
-            htmlContent.setLength(htmlContent.length() - 2);
+            // Remove the trailing comma and space
+            if (htmlContent.length() > 0) {
+                htmlContent.setLength(htmlContent.length() - 2);
+            }
+        } else {
+            htmlContent.append("No info");
         }
 
         // Complete the HTML content and create the JLabel
         JLabel jLabel = new JLabel(htmlContent.append("</font></html>").toString());
-        jLabel.setForeground(Color.black);
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
         return jLabel;
     }
 
     private JLabel createBordersLabel(){
-        String[] borderCodes = country.getBorders(); // Assuming getBorders() returns an array of country codes
-
-        // Convert country codes to country names
-        String[] borderNames = new String[borderCodes.length];
-        for (int i = 0; i < borderCodes.length; i++) {
-            borderNames[i] = countryCodeToName.getOrDefault(borderCodes[i], "Unknown Country");
-        }
-
-        // Build HTML content for the label
+        String[] borderCodes = country.getBorders();
         StringBuilder htmlContent = new StringBuilder("<html><font size=4>Borders: </font><font size=5>");
-
-        for (int i = 0; i < borderNames.length; i++) {
-            htmlContent.append(borderNames[i]);
-
-            // Add comma and space if it's not the last country
-            if (i < borderNames.length - 1) {
-                htmlContent.append(", ");
+        // borders are a list of country codes, so we need to convert them to names
+        if (borderCodes != null) {
+            String[] borderNames = new String[borderCodes.length];
+            for (int i = 0; i < borderCodes.length; i++) {
+                borderNames[i] = countryCodeToName.getOrDefault(borderCodes[i], "Unknown country");
             }
-        }
 
+            // Build HTML content for the label
+            for (int i = 0; i < borderNames.length; i++) {
+                htmlContent.append(borderNames[i]);
+
+                // Add comma and space if it's not the last country
+                if (i < borderNames.length - 1) {
+                    htmlContent.append(", ");
+                }
+            }
+        } else {
+            htmlContent.append("No info or none");
+        }
         htmlContent.append("</font></html>");
 
         // Create and configure the JLabel
         JLabel jLabel = new JLabel(htmlContent.toString());
-        jLabel.setForeground(Color.black);
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
 
         return jLabel;
     }
@@ -211,7 +254,9 @@ public class CountryPanel extends JPanel {
 
         // Create and configure the JLabel
         JLabel jLabel = new JLabel(htmlContent.toString());
-        jLabel.setForeground(Color.black);
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
         return jLabel;
     }
 
@@ -222,7 +267,8 @@ public class CountryPanel extends JPanel {
 
         // Iterate through the currencies map and append the currency information
         currencies.forEach((code, currency) ->
-                htmlContent.append("<font size=5>").append(currency.getName()).append(" (").append(currency.getSymbol()).append(")</font>, "));
+                htmlContent.append("<font size=5>").append(currency.getName())
+                        .append(" (").append(currency.getSymbol()).append(")</font>, "));
 
         // Remove the trailing comma and space
         if (!currencies.isEmpty()) {
@@ -233,7 +279,9 @@ public class CountryPanel extends JPanel {
 
         // Create and configure the JLabel
         JLabel jLabel = new JLabel(htmlContent.toString());
-        jLabel.setForeground(Color.black);
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
         return jLabel;
     }
 
@@ -243,47 +291,62 @@ public class CountryPanel extends JPanel {
         StringBuilder htmlContent = new StringBuilder("<html><font size=4>Car Information: </font>");
 
         // Append signs information
-        htmlContent.append("<font size=5>Signs: [");
+        htmlContent.append("<font size=5>Signs: ");
         List<String> signs = List.of(car.getSigns());
         for (int i = 0; i < signs.size(); i++) {
             htmlContent.append(signs.get(i));
             // Add comma and space if it's not the last sign
             if (i < signs.size() - 1) {
-                htmlContent.append(", ");
+                htmlContent.append("<font size=5>, </font>");
             }
         }
-        htmlContent.append("]</font>");
+        htmlContent.append("</font>");
 
         // Append side information
         htmlContent.append("<font size=5>, Side: ").append(car.getSide()).append("</font></html>");
 
         // Create and configure the JLabel
         JLabel jLabel = new JLabel(htmlContent.toString());
-        jLabel.setForeground(Color.black);
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
         return jLabel;
     }
 
     private JLabel createDistanceLabel(){
-        double[] warsawLatLong = countries.stream()
-                .filter(country -> country.getName().getCommon().equals("Poland"))
+        double[] userCoordinates = countries.stream()
+                .filter(country -> country.getName().getCommon().equals(departureCountry.getName().getCommon()))
                 .map(Country::getLatlng)
                 .findFirst()
                 .orElse(null);
 
-        assert warsawLatLong != null;
-        double warsawLatitude = warsawLatLong[0];
-        double warsawLongitude = warsawLatLong[1];
-        double countryLatitude = country.getCapitalInfo().getLatlng()[0];
-        double countryLongitude = country.getCapitalInfo().getLatlng()[1];
-        int distance = calculateDistance(warsawLatitude, warsawLongitude, countryLatitude, countryLongitude);
-        JLabel jLabel = new JLabel("<html><font size=4>Distance: </font><font size=5>" + distance
-                + " km" + "</font></html>");
-        jLabel.setForeground(Color.black);
+        assert userCoordinates != null;
+        double userLat = userCoordinates[0];
+        double userLong = userCoordinates[1];
+
+        JLabel jLabel;
+        if (country.getCapitalInfo() != null) {
+            double countryLatitude = country.getCapitalInfo().getLatlng()[0];
+            double countryLongitude = country.getCapitalInfo().getLatlng()[1];
+            int distance = calculateDistance(userLat, userLong, countryLatitude, countryLongitude);
+            jLabel = new JLabel("<html><font size=4>Distance: </font><font size=5>" + distance + " km" +
+                    "</font> <font size=3> (from " +
+                    Arrays.toString(departureCountry.getCapital()).replaceAll("[\\[\\]]", "")
+                    + " to " + Arrays.toString(country.getCapital()).replaceAll("[\\[\\]]", "")
+                    + ")</font></html>");
+        } else {
+            jLabel = new JLabel("<html><font size=4>Distance: </font><font size=5>No info</font></html>");
+        }
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
+        jLabel.setForeground(textColor);
         return jLabel;
     }
 
     private JLabel createGoogleMapsLabel() {
-        JLabel jLabel = new JLabel("<html><u>" + "See on Google Maps" + "</u></html>");
+        JLabel jLabel = new JLabel("<html><font size=4<u>" + "See on Google Maps" + "</u></html>");
+        Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
+        jLabel.setFont(labelFont);
         jLabel.setForeground(Color.BLUE);
         jLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
@@ -326,10 +389,12 @@ public class CountryPanel extends JPanel {
     }
 
     private Map<String, String> CountryMapper() {
-        // Initialize the map with country codes to country name mappings
+        // map with country codes to country name
         HashMap<String, String> countryCodeToName = new HashMap<>();
         for (Country country1: countries) {
-            countryCodeToName.put(country1.getCca3(), country1.getName().getCommon());
+            if (country1.getCca2() != null) {
+                countryCodeToName.put(country1.getCca3(), country1.getName().getCommon());
+            }
         }
         return countryCodeToName;
     }
