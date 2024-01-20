@@ -183,7 +183,8 @@ public class SearchFrame extends JFrame {
                         .equals(departureCountryName));
                 // display info about no countries matching the choices or no selected continent
                 if (filteredCountries.isEmpty() || noContinentSelected()){
-                    result.add(createNoInfoPanel(), BorderLayout.CENTER);
+                    result.setLayout(new FlowLayout());
+                    result.add(createNoInfoPanel(), BorderLayout.AFTER_LAST_LINE);
                 } else {
                     sortCountries();
                     // display flags of filtered countries
@@ -229,7 +230,7 @@ public class SearchFrame extends JFrame {
     }
     public JButton createRandomCountryButton(){
         JButton jButton = new JButton("Random country");
-        jButton.addActionListener(e -> { // TUTAJ ZMIENIC LAYOUT ZEBY FLAGA BYLA PO SRODKU
+        jButton.addActionListener(e -> {
             result.removeAll();
             filteredCountries = new ArrayList<>(countries);
             int random = new Random().nextInt(filteredCountries.size());
@@ -312,6 +313,8 @@ public class SearchFrame extends JFrame {
                 JLabel name = new JLabel(country.getName().getCommon());
                 Font nameFont = new Font("MONOSPACED", Font.PLAIN, 14);
                 name.setFont(nameFont);
+
+                // changing names to shorter forms
                 if (Objects.equals(name.getText(), "Saint Helena, Ascension and Tristan da Cunha")) {
                     name.setText("Saint Helena");
                 }
@@ -326,11 +329,13 @@ public class SearchFrame extends JFrame {
                 imagePanel.setBackground(backgroundColor);
                 panel.add(imagePanel);
 
+                // open country frame when mouse clicked
                 imageLabel.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         try {
-                            CountryFrame countryFrame = new CountryFrame(country, parentFrame, countries, departureCountry);
+                            CountryFrame countryFrame = new CountryFrame(country, parentFrame,
+                                    countries, departureCountry);
                             parentFrame.setVisible(false);
                             countryFrame.setVisible(true);
                         } catch (HeadlessException ex) {
@@ -411,8 +416,11 @@ public class SearchFrame extends JFrame {
 
     private JPanel createNoCoordinatesPanel(){
         JPanel jPanel = new JPanel();
-        JLabel jLabel = new JLabel("<html><font size=5>Sorry, we couldn't find info about your coordinates." +
+        JLabel jLabel = new JLabel("<html><font size=5>Sorry, we couldn't find info about your " +
+                "coordinates and we are not able to calculate the distance." +
+                " Please select another country of departure." +
                 "</font></html>");
+        jLabel.setPreferredSize(new Dimension(750, 150));
         Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
         jLabel.setFont(labelFont);
         jLabel.setForeground(textColor);
@@ -424,14 +432,17 @@ public class SearchFrame extends JFrame {
         JPanel jPanel = new JPanel();
         JLabel jLabel = new JLabel();
         if (departureCountry.getCapitalInfo().getLatlng() == null) {
-            jLabel = new JLabel("<html><font size=5>Sorry, we couldn't find info about your coordinates." +
+            jLabel = new JLabel("<html><font size=5>Sorry, we couldn't find info about your " +
+                    "coordinates and we are not able to calculate the distance." +
+                    " Please select another country of departure." +
                     "</font></html>");
         } else if (noContinentSelected()){
-            jLabel = new JLabel("<html><font size=5>Please select at least one continent</font></html>");
+            jLabel = new JLabel("<html><font size=5>Please select at least one continent.</font></html>");
         } else if (filteredCountries.isEmpty()) {
             jLabel = new JLabel("<html><font size=5>Sorry, we couldn't find any country that matches" +
-                    " your choices :(</font></html>");
+                    " your choices. :(</font></html>");
         }
+        jLabel.setPreferredSize(new Dimension(750, 150));
         Font labelFont = new Font("MONOSPACED", Font.PLAIN, 5);
         jLabel.setFont(labelFont);
         jLabel.setForeground(textColor);

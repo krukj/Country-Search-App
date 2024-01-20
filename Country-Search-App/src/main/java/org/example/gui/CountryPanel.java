@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -178,7 +179,7 @@ public class CountryPanel extends JPanel {
         Map<String, String> languagesMap = country.getLanguages();
 
         // Using StringBuilder to build the HTML content
-        StringBuilder htmlContent = new StringBuilder("<html><font size=4>Languages spoken: </font><font size=5>");
+        StringBuilder htmlContent = new StringBuilder("<html><font size=4>Language(s) spoken: </font><font size=5>");
 
         // Iterate through the values of the languagesMap and append them to the HTML content
         if (!languagesMap.values().isEmpty()) {
@@ -207,7 +208,7 @@ public class CountryPanel extends JPanel {
         if (borderCodes != null) {
             String[] borderNames = new String[borderCodes.length];
             for (int i = 0; i < borderCodes.length; i++) {
-                borderNames[i] = countryCodeToName.getOrDefault(borderCodes[i], "Unknown Country");
+                borderNames[i] = countryCodeToName.getOrDefault(borderCodes[i], "Unknown country");
             }
 
             // Build HTML content for the label
@@ -328,8 +329,11 @@ public class CountryPanel extends JPanel {
             double countryLatitude = country.getCapitalInfo().getLatlng()[0];
             double countryLongitude = country.getCapitalInfo().getLatlng()[1];
             int distance = calculateDistance(userLat, userLong, countryLatitude, countryLongitude);
-            jLabel = new JLabel("<html><font size=4>Distance: </font><font size=5>" + distance
-                    + " km" + "</font></html>");
+            jLabel = new JLabel("<html><font size=4>Distance: </font><font size=5>" + distance + " km" +
+                    "</font> <font size=3> (from " +
+                    Arrays.toString(departureCountry.getCapital()).replaceAll("[\\[\\]]", "")
+                    + " to " + Arrays.toString(country.getCapital()).replaceAll("[\\[\\]]", "")
+                    + ")</font></html>");
         } else {
             jLabel = new JLabel("<html><font size=4>Distance: </font><font size=5>No info</font></html>");
         }
@@ -385,7 +389,7 @@ public class CountryPanel extends JPanel {
     }
 
     private Map<String, String> CountryMapper() {
-        // Initialize the map with country codes to country name mappings
+        // map with country codes to country name
         HashMap<String, String> countryCodeToName = new HashMap<>();
         for (Country country1: countries) {
             if (country1.getCca2() != null) {
